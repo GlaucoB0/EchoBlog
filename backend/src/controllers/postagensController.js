@@ -1,5 +1,5 @@
-import { response } from "express";
 import { z } from "zod";
+import fs from "fs"
 import Postagem from "../models/postagensModel.js";
 
 export const create = async (request, response) => {
@@ -112,7 +112,33 @@ export const deletePostagem = async (request, response) => {
     }
     response.status(200).json({ msg: "Postagem deletada" });
   } catch (error) {
-    console.error(error)
+    console.error(error);
     response.status(500).json({ msg: "Erro ao deletar Postagem" });
+  }
+};
+
+export const uploadImagePostagem = async (request, response) => {
+  const {id} = request.params
+  const caminhoImagem = `${id}.jpg`
+
+  fs.writeFile(`src/images/${caminhoImagem}`, request.body, (err) => {
+    if(err){
+      console.error(err)
+      response.status(500).json({err: "Erro ao cadastrar imagem"})
+      return
+    }
+  })
+
+  try {
+    const [linhasAfetadas] = await Postagem.update({imagem: caminhoImagem}, {
+      where: { id },
+    });
+    if (linhasAfetadas === 0) {
+      response.status(404).json({ msg: "Postagem não encontrada" });
+      return;
+    }
+    response.status(200).json({ msg: "Imagem Atualizada" });
+  } catch (error) {
+    response.status(500).json({ msg: "Erro ao atualizar Imagem" });
   }
 };
