@@ -12,7 +12,19 @@ const createSchema = z.object({
   conteudo: z
     .string()
     .min(5, { msg: "O conteudo deve ter pelo menos 5 caracteres" }),
-  autor: z.string().min(5, { msg: "O autor deve ter pelo menos 5 caracteres" }),
+  autor: z.string().min(3, { msg: "O autor deve ter pelo menos 3 caracteres" }),
+  imagem: z.string().optional(),
+});
+
+const updatePostagemSchema = z.object({
+  titulo: z
+    .string()
+    .min(3, { msg: "O titulo deve ter pelo menos 3 caracteres" })
+    .transform((txt) => txt.toLowerCase()),
+  conteudo: z
+    .string()
+    .min(5, { msg: "O conteudo deve ter pelo menos 5 caracteres" }),
+  autor: z.string().min(3, { msg: "O autor deve ter pelo menos 3 caracteres" }),
   imagem: z.string().optional(),
 });
 
@@ -101,6 +113,18 @@ export const getPostagem = async (request, response) => {
 };
 
 export const updatePostagem = async (request, response) => {
+
+  const paramValidation = updatePostagemSchema.safeParse(request.params);
+  if (!paramValidation.success) {
+    response
+      .status(400)
+      .json({
+        msg: "Numero de identificação está inválido",
+        detalhes: formatZodError(paramValidation.error),
+      });
+      return
+  }
+
   const { id } = request.params;
   const { titulo, conteudo, imagem } = request.body;
 
