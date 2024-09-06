@@ -1,9 +1,32 @@
 import { z } from "zod";
 import formatZodError from "../helpers/zodError.js";
-import fs from "fs"
+import fs from "fs";
 import Postagem from "../models/postagensModel.js";
 
+// Validações com ZOD
+const createSchema = z.object({
+  titulo: z
+    .string()
+    .min(3, { msg: "O titulo deve ter pelo menos 3 caracteres" })
+    .transform((txt) => txt.toLowerCase()),
+  conteudo: z
+    .string()
+    .min(5, { msg: "O conteudo deve ter pelo menos 5 caracteres" }),
+  autor: z.string().min(5, { msg: "O autor deve ter pelo menos 5 caracteres" }),
+  imagem: z.string().optional(),
+});
+
 export const create = async (request, response) => {
+  const bodyValidation = createSchema.safeParse(request.body);
+
+  if (!bodyValidation.success) {
+    response.status(400).json({
+      msg: "Os dados recebidos do corpo são invalidos",
+      detalhes: formatZodError(bodyValidation.error),
+    });
+    return;
+  }
+
   const { titulo, conteudo, autor, imagem } = request.body;
 
   if (!titulo) {
@@ -119,21 +142,24 @@ export const deletePostagem = async (request, response) => {
 };
 
 export const uploadImagePostagem = async (request, response) => {
-  const {id} = request.params
-  const caminhoImagem = `${id}.jpg`
+  const { id } = request.params;
+  const caminhoImagem = `${id}.jpg`;
 
   fs.writeFile(`src/images/${caminhoImagem}`, request.body, (err) => {
-    if(err){
-      console.error(err)
-      response.status(500).json({err: "Erro ao cadastrar imagem"})
-      return
+    if (err) {
+      console.error(err);
+      response.status(500).json({ err: "Erro ao cadastrar imagem" });
+      return;
     }
-  })
+  });
 
   try {
-    const [linhasAfetadas] = await Postagem.update({imagem: caminhoImagem}, {
-      where: { id },
-    });
+    const [linhasAfetadas] = await Postagem.update(
+      { imagem: caminhoImagem },
+      {
+        where: { id },
+      }
+    );
     if (linhasAfetadas === 0) {
       response.status(404).json({ msg: "Postagem não encontrada" });
       return;
