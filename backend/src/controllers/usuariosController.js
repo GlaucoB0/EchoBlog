@@ -1,6 +1,6 @@
 import { z } from "zod";
 import formatZodError from "../helpers/zodError.js";
-import fs from "fs";
+import jwt from "jsonwebtoken"
 import Usuario from "../models/usuariosModel.js";
 
 const registrarSchema = z.object({
@@ -65,4 +65,27 @@ export const registrar = async (request, response) => {
     console.error(error);
     response.status(500).json({ err: "Erro ao cadastrar usuario" });
   }
+};
+
+export const login = async (request, response) => {
+  const { email, senha } = request.body;
+
+  if (!email) {
+    response.status(400).json({ err: "O email é obirgatoria" });
+    return;
+  }
+  if (!senha) {
+    response.status(400).json({ err: "A senha é obirgatoria" });
+    return;
+  }
+
+  const user = await Usuario.findOne({
+    raw: true,
+    where: {
+      email: email,
+      senha: senha,
+    },
+  });
+
+  const token = jwt.sign({ foo: 'bar' }, 'SENHAHIPERMEGASUPERSECRETA', { algorithm: 'RS256' });
 };
