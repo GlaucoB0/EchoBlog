@@ -3,9 +3,11 @@ import express from "express";
 import cors from "cors";
 import conn from "./config/conn.js";
 import postagensRouter from "./routes/postagensRouter.js"
+import usuariosRouter from "./routes/usuariosRouter.js"
 
 // Importação dos models
 import "./models/postagensModel.js";
+import "./models/usuariosModel.js";
 
 const PORT = process.env.PORT || 3333;
 
@@ -28,6 +30,7 @@ conn
 
 // Utilizando Rotas
 app.use("/postagens", postagensRouter);
+app.use("/usuarios", usuariosRouter);
 
 app.use((request, response) => {
   response.status(404).json({ msg: "Rota não encontrada" });
