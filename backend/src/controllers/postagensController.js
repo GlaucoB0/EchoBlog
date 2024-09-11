@@ -167,9 +167,9 @@ export const deletePostagem = async (request, response) => {
 
 export const uploadImagePostagem = async (request, response) => {
   const { id } = request.params;
-  const caminhoImagem = `${id}.jpg`;
+  const nomeImagem = `${id}.jpg`;
 
-  fs.writeFile(`src/images/${caminhoImagem}`, request.body, (err) => {
+  fs.writeFile(`src/public/postagens/${nomeImagem}`, request.body, (err) => {
     if (err) {
       console.error(err);
       response.status(500).json({ err: "Erro ao cadastrar imagem" });
@@ -179,7 +179,7 @@ export const uploadImagePostagem = async (request, response) => {
 
   try {
     const [linhasAfetadas] = await Postagem.update(
-      { imagem: caminhoImagem },
+      { imagem: nomeImagem },
       {
         where: { id },
       }
