@@ -2,6 +2,7 @@ import { z } from "zod";
 import formatZodError from "../helpers/zodError.js";
 import jwt from "jsonwebtoken";
 import Usuario from "../models/usuariosModel.js";
+import { verificarAdmin } from "../helpers/authAdmin.js";
 
 const registrarSchema = z.object({
   nome: z
@@ -99,5 +100,56 @@ export const login = async (request, response) => {
     response.status(200).json({ msg: "Login realizado com sucesso", token });
   } catch (error) {
     response.status(400).json({ error: error.message });
+  }
+};
+
+export const updateUsuario = async (request, response) => {
+  const { nome, email, senha } = request.body;
+  const { id } = request.params;
+
+  if (!nome) {
+    response.status(400).json({ err: "O nome é obirgatoria" });
+    return;
+  }
+  if (!email) {
+    response.status(400).json({ err: "O email é obirgatoria" });
+    return;
+  }
+  if (!senha) {
+    response.status(400).json({ err: "A senha é obirgatoria" });
+    return;
+  }
+
+  try {
+    const emailExist = await Usuario.findOne({
+      raw: true,
+      where: { email: email },
+    });
+
+    if (emailExist && emailExist.id !== id) {
+      response.status(400).json({ msg: "email já está em uso" });
+      return;
+    }
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+    return;
+  }
+
+  try {
+    await Usuario.update({ nome, email, senha }, { where: { id } });
+    response.status(200).json({ msg: "Usuario atualizado" });
+    return;
+  } catch (error) {
+    response.status(400).json({ error: error.message });
+    return;
+  }
+};
+
+export const getAll = async (request, response) => {
+  try {
+    const usuarios = await Usuario.findAll();
+    response.status(200).json(usuarios);
+  } catch (error) {
+    response.status(500).json({ error: error.message });
   }
 };

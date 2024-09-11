@@ -17,3 +17,17 @@ export const verificarToken = (request, response, next) => {
     return response.status(403).json({ msg: "Token inválido" });
   }
 };
+
+export const verificarAdmin = (request, response, next) => {
+  const { papel } = request.usuario;
+
+  if (papel !== "administrador") {
+    return response
+      .status(403)
+      .json({
+        msg: "Acesso negado, apenas administradores podem acessar este recurso",
+      });
+  }
+
+  next();
+};
