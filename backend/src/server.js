@@ -1,9 +1,15 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Conexão
 import conn from "./config/conn.js";
-import postagensRouter from "./routes/postagensRouter.js"
-import usuariosRouter from "./routes/usuariosRouter.js"
+
+// Rotas
+import postagensRouter from "./routes/postagensRouter.js";
+import usuariosRouter from "./routes/usuariosRouter.js";
 
 // Importação dos models
 import "./models/postagensModel.js";
@@ -13,10 +19,16 @@ const PORT = process.env.PORT || 3333;
 
 const app = express();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Middlewares
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Middlewares para upload de imagens
+app.use("/public", express.static(path.join(__dirname, "public")));
 
 // Conexão com o banco
 conn

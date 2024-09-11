@@ -1,6 +1,6 @@
 import { z } from "zod";
 import formatZodError from "../helpers/zodError.js";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import Usuario from "../models/usuariosModel.js";
 
 const registrarSchema = z.object({
@@ -87,5 +87,17 @@ export const login = async (request, response) => {
     },
   });
 
-  const token = jwt.sign({ foo: 'bar' }, 'SENHAHIPERMEGASUPERSECRETA', { algorithm: 'RS256' });
+  try {
+    const token = jwt.sign(
+      { id: user.id, papel: user.papel },
+      process.env.SENHA_JWT,
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    response.status(200).json({ msg: "Login realizado com sucesso", token });
+  } catch (error) {
+    response.status(400).json({ error: error.message });
+  }
 };
