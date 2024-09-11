@@ -1,6 +1,5 @@
 import { z } from "zod";
 import formatZodError from "../helpers/zodError.js";
-import fs from "fs";
 import Usuario from "../models/usuariosModel.js";
 
 const registrarSchema = z.object({

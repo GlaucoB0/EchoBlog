@@ -13,7 +13,6 @@ const createSchema = z.object({
     .string()
     .min(5, { msg: "O conteudo deve ter pelo menos 5 caracteres" }),
   autor: z.string().min(3, { msg: "O autor deve ter pelo menos 3 caracteres" }),
-  imagem: z.string().optional(),
 });
 
 const updatePostagemSchema = z.object({
@@ -39,7 +38,14 @@ export const create = async (request, response) => {
     return;
   }
 
-  const { titulo, conteudo, autor, imagem } = request.body;
+  const { titulo, conteudo, autor } = request.body;
+
+  let imagem;
+  if (request.file) {
+    imagem = request.file.filename;
+  } else {
+    imagem = "postagemDefault.png";
+  }
 
   if (!titulo) {
     response.status(400).json({ err: "O titulo é obirgatoria" });
@@ -113,16 +119,13 @@ export const getPostagem = async (request, response) => {
 };
 
 export const updatePostagem = async (request, response) => {
-
   const paramValidation = updatePostagemSchema.safeParse(request.params);
   if (!paramValidation.success) {
-    response
-      .status(400)
-      .json({
-        msg: "Numero de identificação está inválido",
-        detalhes: formatZodError(paramValidation.error),
-      });
-      return
+    response.status(400).json({
+      msg: "Numero de identificação está inválido",
+      detalhes: formatZodError(paramValidation.error),
+    });
+    return;
   }
 
   const { id } = request.params;
@@ -169,14 +172,12 @@ export const uploadImagePostagem = async (request, response) => {
   const { id } = request.params;
   const nomeImagem = `${id}.jpg`;
 
-  fs.writeFile(`src/public/postagens/${nomeImagem}`, request.body, (err) => {
-    if (err) {
-      console.error(err);
-      response.status(500).json({ err: "Erro ao cadastrar imagem" });
-      return;
-    }
-  });
-
+  let imagem;
+  if (request.file) {
+    imagem = request.file.filename;
+  } else {
+    imagem = "postagemDefault.png";
+  }
   try {
     const [linhasAfetadas] = await Postagem.update(
       { imagem: nomeImagem },
